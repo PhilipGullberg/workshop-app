@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto p-4 text-center">
+    <h1 class="text-3xl font-bold mb-4">Generate an Image for Your Product</h1>
+
+    <div class="mb-6">
+        <h2 class="text-xl font-semibold mb-2">Your Product Idea:</h2>
+        {% if product_idea %}
+            <p><strong>Title:</strong> {{ product_idea.title }}</p>
+            <p><strong>Description:</strong> {{ product_idea.description }}</p>
+            <p><strong>Price:</strong> {{ product_idea.price }}</p>
+        {% else %}
+            <p>Product idea not found. Please go back to Step 1.</p>
+        {% endif %}
+    </div>
+
+    <form method="POST" action="{{ url_for('step2_image') }}" class="mb-6">
+        <label for="additional_prompt" class="block text-gray-700 text-sm font-bold mb-2">
+            Add details for the image (e.g., style, setting, colors):
+        </label>
+        <textarea id="additional_prompt" name="additional_prompt" rows="4" class="shadow appearance-none border rounded w-full px-8 py-4 text-gray-700 rounded-lg leading-tight focus:outline-none focus:shadow-outline mb-4"></textarea>
+        <div class="flex justify-center gap-4">
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold px-8 py-2 rounded focus:outline-none focus:shadow-outline mt-4">
+                {% if image_data %}Regenerate Image{% else %}Generate Image{% endif %}
+            </button>
+            {% if image_data %} {# Show continue button only if image is generated #}
+            <div class="text-center mt-6 ">
+                <a href="{{ url_for('step3_music') }}" class="inline-block px-8 py-4 text-lg font-semibold text-white bg-green-600 rounded-lg shadow-md hover:bg-green-700 transition duration-300 ease-in-out ">Continue to next step</a>
+            </div>
+        </div>
+    </form>
+    
+    {% endif %}
+    {% if image_data %} {# Check if image_data exists in the session #}
+        <div class="mt-6">
+            <h2 class="text-xl font-semibold mb-2">Generated Image:</h2>
+            {# Correcting the image source to use image_data instead of image_data #}
+             <img src="{{ url_for('static', filename='generated_images/' + image_data) }}" alt="Generated Product Image" class="mx-auto rounded-lg shadow-lg max-w-full h-auto">
+        </div>
+    {% elif request.method == 'POST' and not image_data %} {# Handle case where generation failed #}
+         <p class="text-red-500 mt-4">Image generation failed. Please try again.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

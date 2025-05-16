@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Enter Code</title>
+    <style>
+        body { font-family: sans-serif; }
+    </style>
+</head>
+<body>
+    <h1>Enter the Workshop Code and Your Name</h1>
+    {% if error %}
+    <p style="color: red;">{{ error }}</p>
+    {% endif %}
+    <form method="POST" action="{{ url_for('process_code') }}">
+        <label for="code">Code:</label><br><input type="text" id="code" name="code"><br><br>
+        <label for="name">Name:</label><br><input type="text" id="name" name="name"><br><br>
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>

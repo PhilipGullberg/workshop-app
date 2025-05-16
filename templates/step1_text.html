@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Step 1: Text Generation{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6 text-gray-800">Steg 1 – Textgenerering</h1>
+
+    <p class="mb-4 text-gray-600">Beskriv vad din produkt ska handla om:</p>
+
+    <form method="POST" action="{{ url_for('step1_text') }}" class="bg-white shadow-md rounded-lg p-6 mb-8">
+        <div class="mb-4">
+            <label for="prompt" class="block text-gray-700 text-sm font-bold mb-2">Produktidé:</label>
+            <textarea name="prompt" id="prompt" rows="4" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>{{ request.form.get('prompt', '') }}</textarea>
+        </div>
+        <div class="flex items-center justify-between">
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Generera text
+            </button>
+        </div>
+    </form>
+
+    {% if result %}
+    <div class="bg-white shadow-md rounded-lg p-6">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">Genererat innehåll:</h2>
+        
+        <div class="mb-4">
+            <h3 class="text-xl font-semibold text-gray-700">Titel:</h3>
+            <p class="text-gray-600">{{ result.get('title', 'N/A') }}</p>
+        </div>
+        
+        <div class="mb-4">
+            <h3 class="text-xl font-semibold text-gray-700">Beskrivning:</h3>
+            <p class="text-gray-600">{{ result.get('description', 'N/A') }}</p>
+        </div>
+        
+        <div class="mb-4">
+            <h3 class="text-xl font-semibold text-gray-700">Pris:</h3>
+            <p class="text-gray-600">{{ result.get('price', 'N/A') }}</p>
+        </div>
+
+        <div class="flex space-x-4">
+        <form method="POST" action="{{ url_for('step1_text') }}" class="inline-block">
+            <input type="hidden" name="prompt" value="{{ request.form.get('prompt', '') }}">
+            <button type="submit" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Generera om</button>
+        </form>
+        <a href="{{ url_for('step2_image') }}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Nästa steg</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
