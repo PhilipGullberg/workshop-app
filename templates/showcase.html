@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Your Product Showcase: {{ product.title or 'Creation' }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-800 to-pink-700 py-10 px-4 sm:px-6 lg:px-8 text-white">
+    <div class="container mx-auto max-w-4xl">
+
+        <header class="text-center mb-12 pt-8">
+            {% if product and product.title %}
+            <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 via-orange-400 to-red-500">
+                {{ product.title }}
+            </h1>
+            <p class="text-xl text-indigo-200">
+                An amazing creation by: <span class="font-semibold text-yellow-300">{{ user_name }}</span>!
+            </p>
+            {% else %}
+            <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight mb-4 text-yellow-300">
+                Product Showcase
+            </h1>
+            {% endif %}
+        </header>
+
+        {% if product and product.title %}
+        <div class="bg-white/10 backdrop-blur-md shadow-2xl rounded-xl overflow-hidden p-6 md:p-10">
+            
+            <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
+                <div class="flex flex-col items-center space-y-6">
+                    {% if image_display_url %}
+                        <div class="w-full rounded-lg overflow-hidden shadow-xl border-4 border-purple-500/50 hover:border-yellow-400 transition-all duration-300 ease-in-out">
+                            <img src="{{ image_display_url }}" alt="Product image for {{ product.title }}" class="object-contain w-full h-auto aspect-[4/3]">
+                        </div>
+                    {% else %}
+                        <div class="w-full aspect-[4/3] bg-white/5 rounded-lg flex items-center justify-center text-indigo-300 shadow-lg border-2 border-dashed border-purple-500/50">
+                            <p class="text-lg">No image generated yet.</p>
+                            <a href="{{ url_for('step2_image') }}" class="ml-2 text-yellow-400 hover:text-yellow-300 font-semibold">Generate Image</a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="flex flex-col justify-center">
+                    {% if product.price %}
+                    <p class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-400 mb-6">
+                        {{ product.price }}
+                    </p>
+                    {% endif %}
+
+                    <div class="prose prose-invert prose-lg text-indigo-100 max-w-none mb-8">
+                        <h3 class="text-2xl font-semibold text-yellow-400 !mb-2 !mt-0">What is it?</h3>
+                        <p class="text-indigo-200 leading-relaxed">
+                            {{ product.description | replace('\n', '<br>') | safe or "No description available." }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-10 pt-8 border-t-2 border-purple-500/30">
+                <h3 class="text-2xl font-semibold text-yellow-400 mb-4 text-center">Product Jingle / Audio</h3>
+                {% if product.audio_url %}
+                    <audio controls class="w-full max-w-lg mx-auto rounded-md shadow-lg focus:outline-none focus:ring-2 focus:ring-yellow-400" src="{{ product.audio_url }}">
+                        Your browser does not support the audio element.
+                    </audio>
+                {% elif suno_task_id_active %}
+                    <div class="text-center p-6 bg-white/5 rounded-lg shadow-md max-w-lg mx-auto">
+                        <p class="text-xl text-indigo-200 mb-2">🎧 Your custom audio is being mixed by our AI DJs...</p>
+                        <p class="text-sm text-indigo-300">(This page will refresh automatically. Hang tight!)</p>
+                        <div class="mt-4 h-2 bg-purple-500/30 rounded-full overflow-hidden">
+                            <div class="h-2 bg-gradient-to-r from-yellow-400 to-orange-500 animate-pulse-fast" style="width: 100%; animation: progress-indeterminate 2s infinite linear;"></div>
+                        </div>
+                    </div>
+                    <script>
+                        setTimeout(function(){
+                           window.location.reload(1);
+                        }, 15000); // Refresh every 15 seconds
+                    </script>
+                {% else %}
+                    <div class="text-center p-6 bg-white/5 rounded-lg shadow-md max-w-lg mx-auto">
+                        <p class="text-lg text-indigo-300">No audio generated yet for this product.</p>
+                        <a href="{{ url_for('step3_music') }}" class="mt-3 inline-block px-6 py-2 bg-yellow-400 hover:bg-yellow-500 text-indigo-900 font-semibold rounded-md shadow-sm transition duration-150">
+                            Add Audio
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <p>Note: that previous product will be removed when launching new idea</p>
+        <div class="mt-16 text-center pb-12">
+            <a href="{{ url_for('landing') }}" class="inline-block px-10 py-4 border-2 border-yellow-400 text-yellow-300 text-lg font-semibold rounded-lg hover:bg-yellow-400 hover:text-indigo-900 focus:outline-none focus:ring-2 focus:ring-yellow-300 focus:ring-opacity-50 transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+                🚀 Launch Another Idea 🚀
+            </a>
+        </div>
+
+        {% else %}
+            <div class="bg-white/10 backdrop-blur-md shadow-xl rounded-lg p-8 md:p-12 text-center">
+                <h2 class="text-3xl font-semibold text-red-400 mb-4">Product Creation Incomplete</h2>
+                <p class="text-indigo-200 mb-6">
+                    It looks like this product hasn't been fully generated yet.
+                </p>
+                <a href="{{ url_for('step1_text') }}" class="inline-block px-8 py-3 bg-yellow-400 hover:bg-yellow-500 text-indigo-900 font-semibold rounded-lg shadow-md transition duration-150 ease-in-out">
+                    Return to Idea Generation (Step 1)
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    @keyframes progress-indeterminate {
+        0% { transform: translateX(-100%) scaleX(1); }
+        50% { transform: translateX(0%) scaleX(0.3); }
+        100% { transform: translateX(100%) scaleX(1); }
+    }
+    .animate-pulse-fast { /* Custom animation if Tailwind's default pulse is too slow */
+        /* You might not need this if the progress-indeterminate is sufficient */
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}

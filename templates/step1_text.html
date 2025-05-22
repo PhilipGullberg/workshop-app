@@ -1,52 +1,115 @@
 {% extends "base.html" %}
 
-{% block title %}Step 1: Text Generation{% endblock %}
+{% block title %}Steg 1: Produktidé - NTI AI Workshop{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-6 text-gray-800">Steg 1 – Textgenerering</h1>
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-    <p class="mb-4 text-gray-600">Beskriv vad din produkt ska handla om:</p>
+    <div class="text-center mb-12">
+        <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight">
+            <span class="gradient-text bg-gradient-to-r from-purple-400 p-4 border rounded-md via-pink-500 to-orange-400 mb-4">Steg 1: Din Produktidé</span>
+        </h1>
+        <p class="mt-8 text-lg sm:text-xl text-slate-800 max-w-2xl mx-auto">
+            Allt börjar med en idé. Beskriv din produkt eller tjänst, så hjälper AI:n dig att formulera en titel, beskrivning och ett prisförslag.
+        </p>
+    </div>
 
-    <form method="POST" action="{{ url_for('step1_text') }}" class="bg-white shadow-md rounded-lg p-6 mb-8">
-        <div class="mb-4">
-            <label for="prompt" class="block text-gray-700 text-sm font-bold mb-2">Produktidé:</label>
-            <textarea name="prompt" id="prompt" rows="4" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>{{ request.form.get('prompt', '') }}</textarea>
-        </div>
-        <div class="flex items-center justify-between">
-            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                Generera text
-            </button>
-        </div>
-    </form>
-
-    {% if result %}
-    <div class="bg-white shadow-md rounded-lg p-6">
-        <h2 class="text-2xl font-bold mb-4 text-gray-800">Genererat innehåll:</h2>
-        
-        <div class="mb-4">
-            <h3 class="text-xl font-semibold text-gray-700">Titel:</h3>
-            <p class="text-gray-600">{{ result.get('title', 'N/A') }}</p>
-        </div>
-        
-        <div class="mb-4">
-            <h3 class="text-xl font-semibold text-gray-700">Beskrivning:</h3>
-            <p class="text-gray-600">{{ result.get('description', 'N/A') }}</p>
-        </div>
-        
-        <div class="mb-4">
-            <h3 class="text-xl font-semibold text-gray-700">Pris:</h3>
-            <p class="text-gray-600">{{ result.get('price', 'N/A') }}</p>
-        </div>
-
-        <div class="flex space-x-4">
-        <form method="POST" action="{{ url_for('step1_text') }}" class="inline-block">
-            <input type="hidden" name="prompt" value="{{ request.form.get('prompt', '') }}">
-            <button type="submit" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Generera om</button>
+    <div class="max-w-2xl mx-auto glassmorphic-card rounded-xl shadow-2xl p-6 sm:p-8">
+        <form method="POST" action="{{ url_for('step1_text') }}">
+            <div class="mb-6">
+                <label for="prompt" class="block text-lg font-semibold text-slate-800 mb-2">Berätta om din idé:</label>
+                <textarea name="prompt" id="prompt" rows="5" 
+                          class="form-input-custom w-full px-4 py-3 bg-slate-800/70 border-2 border-slate-700 rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition duration-150 ease-in-out" 
+                          placeholder="Exempel: 'En smart kaffemugg som håller kaffet varmt och visar dagens schema...'"
+                          required>{{ request.form.get('prompt', '') }}</textarea>
+            </div>
+            
+            <div class="text-center">
+                <button type="submit"
+                        class="px-8 py-3 text-lg font-semibold text-white
+                               bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 
+                               rounded-lg shadow-lg 
+                               hover:from-purple-700 hover:via-pink-700 hover:to-orange-600 
+                               transform hover:scale-105 transition-all duration-300 ease-in-out
+                               focus:outline-none focus:ring-4 focus:ring-pink-400 focus:ring-opacity-50">
+                    Brainstorma med AI ✨
+                </button>
+            </div>
         </form>
-        <a href="{{ url_for('step2_image') }}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Nästa steg</a>
+    </div>
+
+    {% if error %}
+    <div class="max-w-2xl mx-auto mt-6 p-4 border rounded-md bg-red-500/20 border border-red-500/50 rounded-md text-red-300 text-sm text-center">
+        <p><strong>Obs!</strong> {{ error }}</p>
+    </div>
+    {% endif %}
+
+    {% if result and result.get('title') %} {# Check if result and title exist #}
+    <div class="mt-12 max-w-3xl mx-auto">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold tracking-tight">
+                <span class="gradient-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-500 p-4 border rounded-md mb-4">AI:ns Förslag:</span>
+            </h2>
+            <p class="mt-8 text-md text-slate-800">Här är vad AI:n kom fram till baserat på din idé.</p>
+        </div>
+
+        <div class="glassmorphic-card rounded-xl shadow-2xl p-6 sm:p-8 space-y-6">
+            <div>
+                <h3 class="text-xl font-semibold text-sky-400 mb-1">Titel:</h3>
+                <p class="text-slate-800 text-lg">{{ result.get('title', 'Ingen titel genererad.') }}</p>
+            </div>
+            
+            <hr class="border-slate-700/50">
+
+            <div>
+                <h3 class="text-xl font-semibold text-sky-400 mb-1">Beskrivning:</h3>
+                <p class="text-slate-800 leading-relaxed">{{ result.get('description', 'Ingen beskrivning genererad.') | replace('\n', '<br>') | safe }}</p>
+            </div>
+            
+            <hr class="border-slate-700/50">
+
+            <div>
+                <h3 class="text-xl font-semibold text-sky-400 mb-1">Prisförslag:</h3>
+                <p class="text-slate-800 text-lg font-medium">{{ result.get('price', 'Inget pris genererat.') }}</p>
+            </div>
+
+            <div class="pt-6 flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <form method="POST" action="{{ url_for('step1_text') }}" class="w-full sm:w-auto">
+                    <input type="hidden" name="prompt" value="{{ request.form.get('prompt', session.get('last_prompt', '')) }}"> {# Ensure prompt is available for regeneration #}
+                    <button type="submit"
+                            class="w-full sm:w-auto px-6 py-3 text-md font-semibold text-slate-800
+                                   bg-slate-600/70 border border-slate-500
+                                   rounded-lg shadow-md 
+                                   hover:bg-slate-500/70 hover:border-slate-400
+                                   transform hover:scale-105 transition-all duration-300 ease-in-out
+                                   focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-opacity-50">
+                        Försök Igen 🔄
+                    </button>
+                </form>
+                
+                <a href="{{ url_for('step2_image') }}"
+                   class="w-full sm:w-auto inline-block text-center px-6 py-3 text-md font-semibold text-white
+                          bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 
+                          rounded-lg shadow-lg 
+                          hover:from-emerald-600 hover:via-green-600 hover:to-teal-600 
+                          transform hover:scale-105 transition-all duration-300 ease-in-out
+                          focus:outline-none focus:ring-4 focus:ring-green-400 focus:ring-opacity-50">
+                    Nästa: Skapa Bild 🖼️
+                </a>
+            </div>
         </div>
     </div>
     {% endif %}
 </div>
+
+{% endblock %}
+
+{% block styles %}
+{{ super() }} {# Include styles from base.html if any #}
+<style>
+    .form-input-custom:focus { /* Already defined in previous step, ensure it's in base.html or here */
+        border-color: #ec4899; /* pink-500 */
+        box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.4); /* ring-pink-500 with opacity */
+    }
+</style>
 {% endblock %}

@@ -16,7 +16,7 @@ def generate_music(prompt: str, session_id: str, style: str = None):
       "instrumental": False,
       "model": "V3_5",
       "negativeTags": "",
-      "callBackUrl": f"http://localhost:5000/suno_callback?session_id={session_id}"
+      "callBackUrl": f"https://workshop-app-still-cherry-5077.fly.dev/suno_callback?session_id={session_id}"
     })
 
     headers = {

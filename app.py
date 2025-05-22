@@ -1,21 +1,66 @@
 from flask import Flask, render_template, request, redirect, session, url_for 
 from utils.openai_utils import generate_product_idea
-from utils.image_gen import generate_image # Assume image_gen, suno_utils exist and have generate_image, generate_music functions
+from utils.image_gen import generate_image 
 import sqlite3
 import uuid
-
-# We will integrate Gemini image generation directly here for now
-# from utils.image_gen import generate_image
 from google import genai
 from google.genai import types
 from PIL import Image
 from io import BytesIO
-from utils.suno_utils import generate_music # Import the generate_music function
+import os
+from utils.suno_utils import generate_music
+from functools import wraps 
 
+
+DB_URL_ENV = os.getenv("DATABASE_URL", "sqlite:////data/app.db")
+
+if DB_URL_ENV.startswith("sqlite:///"):
+    ACTUAL_DATABASE_PATH = DB_URL_ENV[len("sqlite///"):]
+elif DB_URL_ENV.startswith("sqlite://"): # Handles missing slash sometimes
+    ACTUAL_DATABASE_PATH = DB_URL_ENV[len("sqlite://"):]
+else:
+    ACTUAL_DATABASE_PATH = DB_URL_ENV # Assume it's already a valid path
+
+# Ensure the directory for the database exists
+db_dir = os.path.dirname(ACTUAL_DATABASE_PATH)
+if db_dir and not os.path.exists(db_dir):
+    os.makedirs(db_dir, exist_ok=True)
+    print(f"Created database directory: {db_dir}")
+
+
+def get_full_product_details(session_id):
+    """Retrieves all relevant product details for a given session ID."""
+    try:
+        conn = sqlite3.connect(ACTUAL_DATABASE_PATH)
+        cursor = conn.cursor()
+        cursor.execute('''
+        SELECT name, title, description, price, image_filename, audio_url
+        FROM product_ideas
+        WHERE session_id = ?
+        ORDER BY id DESC LIMIT 1
+        ''', (session_id,))
+        row = cursor.fetchone()
+        conn.close()
+
+        if row:
+            return {
+                "name": row[0],
+                "title": row[1],
+                "description": row[2],
+                "price": row[3],
+                "image_filename": row[4],
+                "audio_url": row[5]
+            }
+        else:
+            return None
+    except Exception as e:
+        print(f"Error retrieving full product details for session {session_id}: {e}")
+        return None
+    
 def get_product_idea_audio(session_id):
 
     try:
-        conn = sqlite3.connect('mydatabase.db')
+        conn = sqlite3.connect(ACTUAL_DATABASE_PATH)
         cursor = conn.cursor()
         cursor.execute("SELECT audio_url FROM product_ideas WHERE session_id = ? ORDER BY id DESC LIMIT 1", (session_id,))
         row = cursor.fetchone()
@@ -26,7 +71,7 @@ def get_product_idea_audio(session_id):
         return None
 
 def initialize_database():
- conn = sqlite3.connect('mydatabase.db')
+ conn = sqlite3.connect(ACTUAL_DATABASE_PATH)
  cursor = conn.cursor()
 
  # Create the product_ideas table if it doesn't exist
@@ -46,10 +91,12 @@ def initialize_database():
  conn.commit()
  conn.close()
 
+initialize_database()
+
 def save_product_idea_to_db(session_id, name, product_data):
  """Saves the product idea data to the SQLite database."""
  try:
-    conn = sqlite3.connect('mydatabase.db')
+    conn = sqlite3.connect(ACTUAL_DATABASE_PATH)
     cursor = conn.cursor()
     cursor.execute('''
     INSERT INTO product_ideas (session_id, name, title, description, price)
@@ -62,7 +109,7 @@ def save_product_idea_to_db(session_id, name, product_data):
     print(f"Error saving product idea to database: {e}")
 
 def update_product_idea_image(session_id, image_filename):
-    conn = sqlite3.connect('mydatabase.db')
+    conn = sqlite3.connect(ACTUAL_DATABASE_PATH)
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -79,7 +126,7 @@ def update_product_idea_image(session_id, image_filename):
 
 def update_product_idea_audio(session_id, audio_url):
     """Updates the audio URL for a product idea in the SQLite database."""
-    conn = sqlite3.connect('mydatabase.db')
+    conn = sqlite3.connect(ACTUAL_DATABASE_PATH)
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -97,7 +144,7 @@ def update_product_idea_audio(session_id, audio_url):
 def get_product_idea_for_session(session_id):
  """Retrieves the latest product idea for a given session ID from the database."""
  try:
-    conn = sqlite3.connect('mydatabase.db')
+    conn = sqlite3.connect(ACTUAL_DATABASE_PATH)
     cursor = conn.cursor()
     cursor.execute('''
     SELECT title, description, price
@@ -125,12 +172,22 @@ def get_product_idea_for_session(session_id):
 
 app = Flask(__name__)
 app.secret_key = 'very_secret_key'  # Replace with a real secret key in production
-ACCESS_CODE = "Workshop2025"
+ACCESS_CODE = "workshop2025"
+
+def code_verified_required(f):  # Renamed for clarity, logic is the same
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_session_id' not in session:
+            # 'user_session_id' is only sext after a correct code entry.
+            # If it's not here, they need to go through the code entry process.
+            return redirect(url_for('enter_code', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
 
 @app.route('/')
 def landing():
- # Initialize the database when the app starts
- initialize_database() # Moved database initialization here
+ initialize_database() 
+ session.clear()
  return render_template('landing.html')
 
 
@@ -142,9 +199,10 @@ def enter_code():
 def process_code():
     code = request.form.get('code')
     name = request.form.get('name') # Get the name from the form
-    if code == "workshop25":
+    if code == ACCESS_CODE:
         session['name'] = name # Store the name in the session
         session['user_session_id'] = str(uuid.uuid4()) # Generate and store a unique ID
+        session.permanent = True
         # Redirect to the first step
         return redirect(url_for('step1_text'))
     else:
@@ -155,6 +213,7 @@ def success():
     return render_template('success.html')
 
 @app.route('/step1_text', methods=['GET', 'POST'])
+@code_verified_required
 def step1_text():
     if request.method == 'POST':
         prompt = request.form.get('prompt')
@@ -171,6 +230,7 @@ def step1_text():
         return render_template('step1_text.html', result=result)
 
 @app.route('/step2_image', methods=['GET', 'POST'])
+@code_verified_required
 def step2_image():
     session_id = session.get('user_session_id')
     product_idea = get_product_idea_for_session(session_id)
@@ -182,7 +242,7 @@ def step2_image():
         additional_prompt = request.form.get('additional_prompt', '')
 
         # Construct the final prompt for image generation
-        base_prompt = f"Create a realistic image for a product titled '{product_idea.get('title', '')}' with the description: {product_idea.get('description', '')} dont add any text except the Title of the product."
+        base_prompt = f"Create a realistic image WITHOUT ANY TEXT for a product titled '{product_idea.get('title', '')}' with the description: {product_idea.get('description', '')} BUT WITH NO TEXT, only the title NOT the descirpiton."
         if additional_prompt:
             final_prompt = f"{base_prompt} Additional details: {additional_prompt}"
         else:
@@ -214,6 +274,7 @@ def step2_image():
 
 
 @app.route('/step3_music', methods=['GET', 'POST'])
+@code_verified_required
 def step3_music():
     session_id = session.get('user_session_id')
     product_idea = get_product_idea_for_session(session_id)
@@ -268,11 +329,12 @@ def suno_callback():
         if audio_url:
             update_product_idea_audio(session_id, audio_url)
             session['suno_task_id']= None
-
             print(f"Received callback for session {session_id}, audio URL: {audio_url}")
+            return redirect(url_for('step3_music'))
             return "Callback received and processed", 200
     return "Callback received but data format unexpected", 400
 @app.route('/step4_video', methods=['GET', 'POST'])
+@code_verified_required
 def step4_video():
     if request.method == 'POST':
         # Retrieve image path and music path from the session
@@ -285,8 +347,40 @@ def step4_video():
     else:
         video_path = session.get('step4_video_path', None)
         return render_template('step4_video.html', video_path=video_path)
+    
+@app.route('/showcase') # This is the final result page
+@code_verified_required
+def showcase_product():
+    session_id = session.get('user_session_id')
+    if not session_id:
+        return redirect(url_for('enter_code'))
+
+    product_details = get_full_product_details(session_id)
+    # Use session-specific task ID key
+    suno_task_id_in_session = session.get(f'suno_task_id_{session_id}', None)
+
+
+    if not product_details: # If no product at all (e.g. user jumped to /showcase)
+        return redirect(url_for('step1_text'))
+
+    image_url_for_template = None
+    if product_details.get('image_filename'):
+        image_url_for_template = url_for('static', filename='generated_images/' + product_details['image_filename'])
+
+    # If audio_url is now in DB, the task is complete, ensure session task_id is cleared.
+    if product_details.get('audio_url') and suno_task_id_in_session:
+        session.pop(f'suno_task_id_{session_id}', None)
+        suno_task_id_in_session = None # Update local variable for immediate use in template
+
+    return render_template('showcase.html',
+                           product=product_details, # Contains title, desc, price, audio_url, name
+                           image_display_url=image_url_for_template,
+                           suno_task_id_active=suno_task_id_in_session, # Pass boolean or task_id
+                           user_name=product_details.get('name', 'Our Valued Creator'))
+
 
 @app.route('/step5_website', methods=['GET', 'POST'])
+@code_verified_required
 def step5_website():
     if request.method == 'POST':
         # Retrieve all stored data from the session

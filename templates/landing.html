@@ -1,18 +1,72 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="sv"> <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Workshop - Start</title>
+    <title>NTI Gymnasiet - AI Workshop Start</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"> <style>
+        body {
+            font-family: 'Inter', sans-serif; /* Apply Inter font */
+        }
+        .gradient-text {
+            background-clip: text;
+            -webkit-background-clip: text; /* For Safari */
+            color: transparent;
+        }
+        .glassmorphic-card {
+            background: rgba(255, 255, 255, 0.05); /* Semi-transparent white */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px); /* For Safari */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <div class="text-center p-8 max-w-2xl mx-auto bg-white rounded-lg shadow-lg">
-        <h1 class="text-5xl font-bold text-gray-800 mb-6">AI Workshop</h1>
-        <p class="text-lg text-gray-600 mb-8">Välkommen till vår interaktiva AI-workshop där du får lära dig hur artificiell intelligens kan hjälpa dig att skapa fantastiska saker! Under workshoppen kommer du att få testa olika AI-modeller för att generera text, bilder, musik och video, och till slut skapa en komplett produktsida.</p>
-        <a href="{{ url_for('enter_code') }}" class="inline-block px-8 py-4 text-xl font-semibold text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out">
-            Kör workshop nu!
-        </a>
-    </div>
+<body class="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex flex-col min-h-screen">
+
+    <header class="py-6 px-4 sm:px-6 lg:px-8 w-full">
+        <div class="container mx-auto text-center sm:text-left">
+            <h2 class="text-2xl font-bold text-white">
+                NTI <span class="text-purple-400">Gymnasiet</span>
+            </h2>
+            <p class="text-sm text-purple-300">AI & Framtidens Teknik</p>
+        </div>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div class="text-center p-8 sm:p-12 max-w-3xl mx-auto glassmorphic-card rounded-xl shadow-2xl">
+            
+            <h1 class="text-5xl sm:text-6xl font-extrabold mb-6">
+                <span class="gradient-text bg-gradient-to-r from-purple-400 via-pink-500 to-orange-400">AI Workshop</span>
+            </h1>
+            
+            <p class="text-lg sm:text-xl text-slate-300 mb-10 leading-relaxed">
+                Välkommen till vår interaktiva AI-workshop! Här utforskar vi tillsammans hur artificiell intelligens kan förvandla idéer till verklighet. Du kommer att experimentera med AI för att generera text, designa bilder, komponera musik och slutligen, bygga en komplett digital produktpresentation.
+            </p>
+            
+            <a href="{{ url_for('enter_code') }}" 
+               class="inline-block px-10 py-4 text-xl font-semibold text-white 
+                      bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 
+                      rounded-lg shadow-xl 
+                      hover:from-purple-700 hover:via-pink-700 hover:to-orange-600 
+                      transform hover:scale-105 transition-all duration-300 ease-in-out
+                      focus:outline-none focus:ring-4 focus:ring-pink-400 focus:ring-opacity-50">
+                Kör Workshop Nu! 🚀
+            </a>
+
+            <p class="mt-10 text-xs text-slate-400">
+                Presenteras av NTI Gymnasiet &lt;Sollentuna&gt;
+            </p>
+        </div>
+    </main>
+
+    <footer class="py-6 px-4 text-center">
+        <p class="text-sm text-slate-500">&copy; {{ current_year }} NTI Gymnasiet. Alla rättigheter förbehållna.</p>
+    </footer>
+
+    <script>
+        // Add current year to footer
+        document.querySelector('footer p').innerHTML = document.querySelector('footer p').innerHTML.replace('{{ current_year }}', new Date().getFullYear());
+    </script>
+
 </body>
 </html>

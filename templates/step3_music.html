@@ -1,93 +1,139 @@
 {% extends "base.html" %}
 
-{% block title %}Music Generation - Workshop{% endblock %}
+{% block title %}Steg 3: Ljuddesign - NTI AI Workshop{% endblock %}
 
 {% block content %}
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-    <div class="container mx-auto p-4 text-center">
-    
+    <div class="text-center mb-12">
+        <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight">
+            <span class="gradient-text bg-gradient-to-r from-pink-500 via-red-500 to-orange-500 p-4 border rounded-md mb-4">Steg 3: Skapa Ljud till Din Produkt</span>
+        </h1>
+        <p class="mt-8 text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto">
+            Ge din produkt en röst eller en känsla med ljud! Beskriv vilken typ av musik eller ljud du vill ha, och se (eller hör!) resultatet direkt.
+        </p>
+    </div>
 
-    <div class="mb-8 bg-gray-200 p-2 rounded-lg shadow-md flex gap-8 justify-around">
-        <div class="w-2/3 gap-4 flex flex-col">
-        <h2 class="text-xl font-semibold mb-2">Your Product Idea:</h2>
-        {% if product_idea %}
-            <p class="text-gray-700 text-left"><strong class="font-bold">Title:</strong> {{ product_idea.title }}</p>
-            <p class="text-gray-700 text-left"><strong class="font-bold">Description:</strong> {{ product_idea.description }}</p>
-            <p class="text-gray-700 text-left"><strong class="font-bold">Price:</strong> {{ product_idea.price }}</p>
+    <div class="max-w-4xl mx-auto mb-10">
+        <div class="glassmorphic-card rounded-xl shadow-xl p-6 sm:p-8 border-l-4 border-sky-500">
+            <h2 class="text-2xl font-semibold text-sky-300 mb-6 text-center sm:text-left">Din Produkt Hittills:</h2>
+            <div class="grid sm:grid-cols-3 gap-6 items-start">
+                <div class="sm:col-span-1 flex justify-center">
+                    {% if image_data %} {# Changed from image_data to image_filename #}
+                        <img src="{{ url_for('static', filename='generated_images/' + image_data) }}" alt="Produktbild för {{ product_idea.title }}" 
+                             class="rounded-lg shadow-lg max-w-xs sm:max-w-full h-auto border-2 border-sky-500/30 object-contain" style="max-height: 250px;">
+                    {% else %}
+                        <div class="w-full max-w-xs sm:max-w-full h-48 bg-slate-700/50 rounded-lg flex items-center justify-center text-slate-600 border-2 border-dashed border-sky-500/30">
+                             <p>Ingen bild än. <a href="{{ url_for('step2_image') }}" class="font-semibold underline hover:text-sky-300">Skapa en?</a></p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="sm:col-span-2 text-slate-600 space-y-3">
+                    {% if product_idea and product_idea.title %}
+                        <p><strong class="font-medium text-sky-400">Titel:</strong> {{ product_idea.title }}</p>
+                        <p><strong class="font-medium text-sky-400">Beskrivning:</strong> <span class="text-slate-600 leading-relaxed text-sm">{{ product_idea.description | replace('\n', '<br>') | safe }}</span></p>
+                        <p><strong class="font-medium text-sky-400">Prisförslag:</strong> {{ product_idea.price }}</p>
+                    {% else %}
+                        <p class="text-red-400">Produktidé saknas. Gå tillbaka till <a href="{{ url_for('step1_text') }}" class="font-semibold underline hover:text-red-300">Steg 1</a>.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-2xl mx-auto glassmorphic-card rounded-xl shadow-2xl p-6 sm:p-8">
+        
+        {% if product_idea and audio_path %}
+            <div class="text-center">
+                <h2 class="text-2xl font-semibold text-yellow-300 mb-4">Ditt Genererade Ljudspår:</h2>
+                <audio controls class="w-full max-w-md mx-auto rounded-md shadow-lg focus:outline-none focus:ring-2 focus:ring-yellow-400" src="{{ audio_path }}">
+                    Your browser does not support the audio element.
+                </audio>
+                <div class="mt-8">
+                    <a href="{{ url_for('showcase_product') }}" 
+                       class="inline-block px-10 py-4 text-xl font-semibold text-white
+                              bg-gradient-to-r from-emerald-500 via-green-600 to-teal-600 
+                              rounded-lg shadow-xl 
+                              hover:from-emerald-600 hover:via-green-700 hover:to-teal-700 
+                              transform hover:scale-105 transition-all duration-300 ease-in-out
+                              focus:outline-none focus:ring-4 focus:ring-green-400 focus:ring-opacity-50">
+                        Se Hela Resultatet! 🚀
+                    </a>
+                </div>
+                 <p class="mt-6 text-sm">
+                    <a href="{{ url_for('step3_music') }}" class="text-slate-600 hover:text-slate-600 underline">Generera ett nytt ljud?</a>
+                </p>
+            </div>
+
+        {% elif suno_task_id and not audio_path %}
+            <div class="text-center p-6 bg-slate-800/50 rounded-lg shadow-md">
+                <p class="text-xl text-indigo-200 mb-2">🎧 Ditt anpassade ljudspår mixas...</p>
+                <p class="text-sm text-slate-600">(Sidan uppdateras automatiskt. Det kan ta 3-4 minuter.)</p>
+                <div class="mt-4 h-2 bg-purple-500/30 rounded-full overflow-hidden">
+                    <div class="h-2 bg-gradient-to-r from-pink-500 via-red-500 to-orange-500 animate-pulse-fast" style="width: 100%; animation: progress-indeterminate 2s infinite linear;"></div>
+                </div>
+            </div>
+            <script>
+                setTimeout(function(){
+                   window.location.reload(1);
+                }, 20000); // Refresh every 20 seconds
+            </script>
+
         {% else %}
-            <p class="text-red-500">Product idea not found. Please go back to Step 1.</p>
+            <form method="POST" action="{{ url_for('step3_music') }}">
+                <h2 class="text-2xl font-semibold text-slate-600 mb-6 text-center">Designa Ljudet</h2>
+                <div class="space-y-6">
+                    <div>
+                        <label for="style" class="block text-lg font-medium text-slate-600 mb-1">Musikstil (valfritt):</label>
+                        <input type="text" id="style" name="style" 
+                               class="form-input-custom w-full px-4 py-3 bg-slate-400/70 border-2 border-slate-700 rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition duration-150 ease-in-out"
+                               placeholder="T.ex. 'glad pop', 'episk filmmusik', 'lugn jazz', '8-bitars retro'">
+                    </div>
+
+                    <div>
+                        <label for="audio_prompt" class="block text-lg font-medium text-slate-600 mb-1">Beskriv önskat ljud/musik:</label>
+                        <textarea id="audio_prompt" name="audio_prompt" rows="4" required
+                                  class="form-input-custom w-full px-4 py-3 bg-slate-400/70 border-2 border-slate-700 rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition duration-150 ease-in-out"
+                                  placeholder="T.ex. 'en kort, catchy jingel med visslingar och ukulele för {{ product_idea.title if product_idea else 'produkten' }}', 'dramatisk bakgrundsmusik'"></textarea>
+                        <p class="mt-2 text-xs text-slate-600">Var specifik! AI:n lyssnar på dina detaljer.</p>
+                    </div>
+                </div>
+
+                <div class="mt-8 text-center">
+                    <button type="submit"
+                            class="px-8 py-3 text-lg font-semibold text-white
+                                   bg-gradient-to-r from-pink-600 via-red-500 to-orange-500 
+                                   rounded-lg shadow-lg 
+                                   hover:from-pink-700 hover:via-red-600 hover:to-orange-600 
+                                   transform hover:scale-105 transition-all duration-300 ease-in-out
+                                   focus:outline-none focus:ring-4 focus:ring-red-400 focus:ring-opacity-50">
+                        Skapa Ljudspår 🎧
+                    </button>
+                </div>
+            </form>
         {% endif %}
     </div>
 
-    {% if image_data %} {# Check if image_filename exists to display the image #}
-        <div class="mt-6 mb-8">
-            <h2 class="text-xl font-semibold mb-4">Generated Image:</h2>
-             <!-- Display the image using the static file URL -->
-            <img width="250px" src="{{ url_for('static', filename='generated_images/' + image_data) }}" alt="Generated Product Image" class="mx-auto rounded-lg shadow-lg max-w-full h-auto border border-gray-300">
-        </div>
+    {% if error %} {# Display general errors if Flask passes any for this step #}
+    <div class="max-w-2xl mx-auto mt-6 p-4 bg-red-500/20 border border-red-500/50 rounded-md text-red-300 text-sm text-center">
+        <p><strong>Obs!</strong> {{ error }}</p>
+    </div>
     {% endif %}
+
 </div>
-<h1 class="text-3xl font-bold mb-6">Step 3: Generate Audio for Your Product</h1>
-    <form method="POST" action="{{ url_for('step3_music') }}" class="mb-6">
-        <label class="block text-gray-700 text-sm font-bold mb-2">
-            Select Audio Type:
-        </label>
-        <div class="mb-6 flex justify-center">
-            <div class="mr-6">
-                <input type="radio" id="audio_type_music" name="audio_type" value="music" class="mr-2 leading-tight" checked>
-                <label class="text-gray-700" for="audio_type_music">
-                    Music
-                </label>
-            </div>
-            <div>
-                <input type="radio" id="audio_type_voiceover" name="audio_type" value="voiceover" class="mr-2 leading-tight">
-                <label class="text-gray-700" for="audio_type_voiceover">
-                    Voice-over
-                </label>
-            </div>
-        </div>
+{% endblock %}
 
-        <div class="mb-6">
-            <label for="style" class="block text-gray-700 text-sm font-bold mb-2">
-                Music Style (e.g., "Pop", "Rock", "Classical"):
-            </label>
-            <input type="text" id="style" name="style" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-        </div>
-
-        <label for="audio_prompt" class="block text-gray-700 text-sm font-bold mb-2">
-            Enter Prompt for Audio Generation (e.g., "upbeat pop music", "friendly male voice explaining features"):
-        </label>
-        <textarea id="audio_prompt" name="audio_prompt" rows="4" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
-
-        {# Placeholder for music/voice-over specific options - will be added in Flask route logic #}
-
-        <div class="mt-6">
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md focus:outline-none focus:shadow-outline transition duration-300 ease-in-out">
-                Generate Audio
-            </button>
-        </div>
-
-    </form>
-
-    {% if error_message %}
-        <div class="mt-6 mb-8 text-center text-red-500 font-bold">
-            <p>{{ error_message }}</p>
-        </div>
-    {% endif %}
-    {% if suno_task_id and not audio_path %}
- <div class="mt-6 mb-8 text-center">
- <p class="text-xl text-gray-700">Generating music... Please wait. Refresh the page in 1-2 minutes.</p>
- </div>
-    {% elif audio_path %} {# Use a general audio_path variable #}
-        <h2>Generated Music:</h2>
-        <audio controls>
-            <source src="{{ audio_path }}" type="audio/mpeg"> {# Assume mpeg for now, adjust type based on generated format #}
-            Your browser does not support the audio element.
-        </audio>
-        {# Add regenerate button here if needed #}
-        <div class="mt-8">
-            <a href="{{ url_for('step4_video') }}" class="inline-block px-8 py-4 text-xl font-semibold text-white bg-green-600 rounded-lg shadow-md hover:bg-green-700 transition duration-300 ease-in-out">Continue to next step</a> {# Continue button visible after generation #}
-        </div>
-    {% endif %}
-</div>
+{% block styles %}
+{{ super() }}
+<style>
+    .form-input-custom:focus { /* Ensure this is available, ideally from base.html */
+        border-color: #f43f5e; /* red-500 */
+        box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.4); 
+    }
+    @keyframes progress-indeterminate { /* For the generating audio bar */
+        0% { transform: translateX(-100%) scaleX(1); }
+        50% { transform: translateX(0%) scaleX(0.3); }
+        100% { transform: translateX(100%) scaleX(1); }
+    }
+</style>
 {% endblock %}
